@@ -10,8 +10,8 @@ fl_series = []
 rr_series = []
 rl_series = []
 
-friction_limit_rear = 0
-friction_limit_front = 0
+friction_limit_rear = -1
+friction_limit_front = -1
 
 window_width = 600
 window_height = 300
@@ -92,8 +92,12 @@ def acUpdate(deltaT):
     global friction_limit_rear
 
     tyreCompound = ac.getCarTyreCompound(0)
-    friction_limit_front = float(tyreData['FRONT'][tyreCompound]['FRICTION_LIMIT_ANGLE'])
-    friction_limit_rear = float(tyreData['REAR'][tyreCompound]['FRICTION_LIMIT_ANGLE'])
+    try:
+        friction_limit_front = float(tyreData['FRONT'][tyreCompound]['FRICTION_LIMIT_ANGLE'])
+        friction_limit_rear = float(tyreData['REAR'][tyreCompound]['FRICTION_LIMIT_ANGLE'])
+    except:
+        friction_limit_front = 8
+        friction_limit_rear = 8
 
 def draw_box(x, y, width, height):
     """
@@ -106,10 +110,10 @@ def draw_box(x, y, width, height):
     ac.glQuad(x, y, 1, height)  # Left edge
     ac.glQuad(x + width - 1, y, 1, height)  # Right edge
     ac.glColor3f(1,0,0)
-    ac.glQuad(x, y + height // 2, width, 1)  # Horizontal line
+    ac.glQuad(x, y + height // 2, width, 1)  # Horizontal line 0 line
     ac.glColor3f(0,0,1)
-    ac.glQuad(x, y + height // 4, width, 1)  # Horizontal line
-    ac.glQuad(x, y + height // 4 * 3, width, 1)  # Horizontal line
+    ac.glQuad(x, y + height // 4, width, 1)  # Horizontal line positive slip line
+    ac.glQuad(x, y + height // 4 * 3, width, 1)  # Horizontal line negative slip line
 
 
 def onFormRender(deltaT):
