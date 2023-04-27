@@ -12,21 +12,24 @@ rl_series = []
 
 friction_limit_rear = -1
 friction_limit_front = -1
+data_loaded = False
 
 window_width = 600
 window_height = 300
 
+version = 1.1
+
 tyreData = {}
 
 def log_to_file(msg):
-    ac.log("scrubometer: " + str(msg))
+    ac.log("scrubometer" + str(version) + ": " + str(msg))
 
 def log_to_console(msg):
-    ac.console("scrubometer: " + str(msg))
+    ac.console("scrubometer" + str(version) + ": " + str(msg))
 
 def log(msg):
-    ac.log("scrubometer: " + str(msg))
-    ac.console("scrubometer: " + str(msg))
+    ac.log("scrubometer" + str(version) + ": " + str(msg))
+    ac.console("scrubometer" + str(version) + ": " + str(msg))
 
 def acMain(ac_version):
     appWindow = ac.newApp("scrubometer")
@@ -90,14 +93,17 @@ def loadMyTireData():
 def acUpdate(deltaT):
     global friction_limit_front
     global friction_limit_rear
+    global data_loaded
 
     tyreCompound = ac.getCarTyreCompound(0)
     try:
         friction_limit_front = float(tyreData['FRONT'][tyreCompound]['FRICTION_LIMIT_ANGLE'])
         friction_limit_rear = float(tyreData['REAR'][tyreCompound]['FRICTION_LIMIT_ANGLE'])
+        data_loaded = True
     except:
         friction_limit_front = 8
         friction_limit_rear = 8
+        data_loaded = False
 
 def draw_box(x, y, width, height):
     """
@@ -112,8 +118,11 @@ def draw_box(x, y, width, height):
     ac.glColor3f(1,0,0)
     ac.glQuad(x, y + height // 2, width, 1)  # Horizontal line 0 line
     ac.glColor3f(0,0,1)
-    ac.glQuad(x, y + height // 4, width, 1)  # Horizontal line positive slip line
-    ac.glQuad(x, y + height // 4 * 3, width, 1)  # Horizontal line negative slip line
+
+    #only draw target lines if we have data
+    if data_loaded:
+        ac.glQuad(x, y + height // 4, width, 1)  # Horizontal line positive slip line
+        ac.glQuad(x, y + height // 4 * 3, width, 1)  # Horizontal line negative slip line
 
 
 def onFormRender(deltaT):
