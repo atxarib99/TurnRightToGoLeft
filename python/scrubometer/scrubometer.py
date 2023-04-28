@@ -19,6 +19,15 @@ window_height = 300
 
 version = 1.1
 
+fr_slipangle_label = None
+fl_slipangle_label = None
+rr_slipangle_label = None
+rl_slipangle_label = None
+
+target_slipangle_front_label = None
+target_slipangle_rear_label = None
+
+
 tyreData = {}
 
 def log_to_file(msg):
@@ -32,10 +41,35 @@ def log(msg):
     ac.console("scrubometer" + str(version) + ": " + str(msg))
 
 def acMain(ac_version):
+    global fr_slipangle_label, fl_slipangle_label, rl_slipangle_label, rr_slipangle_label, target_slipangle_front_label, target_slipangle_rear_label
     appWindow = ac.newApp("scrubometer")
     ac.setSize(appWindow, window_width, window_height)
     log("SEM SEM SEM SEM")
 
+    fr_slipangle_label = ac.addLabel(appWindow, "fr")
+    fl_slipangle_label = ac.addLabel(appWindow, "fl")
+    rr_slipangle_label = ac.addLabel(appWindow, "rr")
+    rl_slipangle_label = ac.addLabel(appWindow, "rl")
+    target_slipangle_front_label = ac.addLabel(appWindow, "target_front")
+    target_slipangle_rear_label = ac.addLabel(appWindow, "target_rear")
+
+    #align everything center
+    ac.setFontAlignment(fr_slipangle_label, "center")
+    ac.setFontAlignment(fl_slipangle_label, "center")
+    ac.setFontAlignment(rr_slipangle_label, "center")
+    ac.setFontAlignment(rl_slipangle_label, "center")
+    ac.setFontAlignment(target_slipangle_front_label, "center")
+    ac.setFontAlignment(target_slipangle_rear_label, "center")
+    
+
+    ac.setPosition(fr_slipangle_label, window_width//2 + window_width//4, 5)
+    ac.setPosition(fl_slipangle_label, window_width//4, 5)
+    ac.setPosition(rr_slipangle_label, window_width//2 + window_width//4, window_height//2 + 5)
+    ac.setPosition(rl_slipangle_label, window_width//4, window_height//2 + 5)
+
+    ac.setPosition(target_slipangle_front_label, window_width//2, window_height//4)
+    ac.setPosition(target_slipangle_rear_label, window_width//2, window_height//4 * 3)
+    
     # ac.setPosition(l_current_slip_angle, 3, 30)
     ac.addRenderCallback(appWindow, onFormRender)
 
@@ -91,14 +125,16 @@ def loadMyTireData():
         
 
 def acUpdate(deltaT):
-    global friction_limit_front
-    global friction_limit_rear
-    global data_loaded
+    global friction_limit_front, friction_limit_rear, data_loaded, target_slipangle_rear_label, target_slipangle_front_label
 
     tyreCompound = ac.getCarTyreCompound(0)
     try:
         friction_limit_front = float(tyreData['FRONT'][tyreCompound]['FRICTION_LIMIT_ANGLE'])
         friction_limit_rear = float(tyreData['REAR'][tyreCompound]['FRICTION_LIMIT_ANGLE'])
+        friction_limit_front = round(friction_limit_front, 2)
+        friction_limit_rear = round(friction_limit_rear, 2)
+        ac.setText(target_slipangle_front_label, str(friction_limit_front))
+        ac.setText(target_slipangle_rear_label, str(friction_limit_rear))
         data_loaded = True
     except:
         friction_limit_front = 8
@@ -126,10 +162,7 @@ def draw_box(x, y, width, height):
 
 
 def onFormRender(deltaT):
-    global fr_series
-    global fl_series
-    global rl_series
-    global rr_series
+    global fr_series, fl_series, rl_series, rr_series
     
     box_width = 250
     box_height = 125
@@ -165,6 +198,12 @@ def onFormRender(deltaT):
     fl_series.append(fl_slip)
     rr_series.append(rr_slip)
     rl_series.append(rl_slip)
+
+    ac.setText(fr_slipangle_label, str(round(fr_slip, 2)))
+    ac.setText(fl_slipangle_label, str(round(fl_slip, 2)))
+    ac.setText(rr_slipangle_label, str(round(rr_slip, 2)))
+    ac.setText(rl_slipangle_label, str(round(rl_slip, 2)))
+    
     
     # log_to_console(len(fr_series))
     if len(fr_series) > box_width:
