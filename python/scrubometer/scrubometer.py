@@ -182,12 +182,6 @@ def onFormRender(deltaT):
     box3_y += 10
     box4_y += 10
     
-
-    draw_box(box1_x, box1_y, box_width, box_height)
-    draw_box(box2_x, box2_y, box_width, box_height)
-    draw_box(box3_x, box3_y, box_width, box_height)
-    draw_box(box4_x, box4_y, box_width, box_height)
-    
     # #draw 0 line
     ac.glColor3f(1,0,0)
     # ac.glQuad(3,180,600,1)
@@ -263,3 +257,9 @@ def onFormRender(deltaT):
                 height = -box_height/2
             height = int(height)
             ac.glQuad((box_width-i)+box4_x, box4_y+box_height//2, 1, height)
+    
+    
+    draw_box(box1_x, box1_y, box_width, box_height)
+    draw_box(box2_x, box2_y, box_width, box_height)
+    draw_box(box3_x, box3_y, box_width, box_height)
+    draw_box(box4_x, box4_y, box_width, box_height)
