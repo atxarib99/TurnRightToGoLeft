@@ -17,7 +17,7 @@ data_loaded = False
 window_width = 600
 window_height = 300
 
-version = 1.1
+version = "1.3"
 
 fr_slipangle_label = None
 fl_slipangle_label = None
@@ -26,6 +26,7 @@ rl_slipangle_label = None
 
 target_slipangle_front_label = None
 target_slipangle_rear_label = None
+data_not_found_label = None
 
 
 tyreData = {}
@@ -41,7 +42,7 @@ def log(msg):
     ac.console("scrubometer" + str(version) + ": " + str(msg))
 
 def acMain(ac_version):
-    global fr_slipangle_label, fl_slipangle_label, rl_slipangle_label, rr_slipangle_label, target_slipangle_front_label, target_slipangle_rear_label
+    global fr_slipangle_label, fl_slipangle_label, rl_slipangle_label, rr_slipangle_label, target_slipangle_front_label, target_slipangle_rear_label, data_not_found_label
     appWindow = ac.newApp("scrubometer")
     ac.setSize(appWindow, window_width, window_height)
     log("SEM SEM SEM SEM")
@@ -52,6 +53,7 @@ def acMain(ac_version):
     rl_slipangle_label = ac.addLabel(appWindow, "rl")
     target_slipangle_front_label = ac.addLabel(appWindow, "target_front")
     target_slipangle_rear_label = ac.addLabel(appWindow, "target_rear")
+    data_not_found_label = ac.addLabel(appWindow, "Data not found")
 
     #align everything center
     ac.setFontAlignment(fr_slipangle_label, "center")
@@ -60,6 +62,7 @@ def acMain(ac_version):
     ac.setFontAlignment(rl_slipangle_label, "center")
     ac.setFontAlignment(target_slipangle_front_label, "center")
     ac.setFontAlignment(target_slipangle_rear_label, "center")
+    ac.setFontAlignment(data_not_found_label, "center")
     
 
     ac.setPosition(fr_slipangle_label, window_width//2 + window_width//4, 5)
@@ -69,6 +72,7 @@ def acMain(ac_version):
 
     ac.setPosition(target_slipangle_front_label, window_width//2, window_height//4)
     ac.setPosition(target_slipangle_rear_label, window_width//2, window_height//4 * 3)
+    ac.setPosition(data_not_found_label, window_width//2, window_height//2)
     
     # ac.setPosition(l_current_slip_angle, 3, 30)
     ac.addRenderCallback(appWindow, onFormRender)
@@ -118,14 +122,14 @@ def loadMyTireData():
             if '=' in myline:
                 tyreData[tyreType][compoundType][myline.split('=')[0]] = myline.split('=')[1].replace('\n','')
         log("Loaded tyre data!")
-    except RuntimeError as e:
+    except FileNotFoundError as e:
         log("Can't load tyre data. Try unpacking data.")
         log(e)
 
         
 
 def acUpdate(deltaT):
-    global friction_limit_front, friction_limit_rear, data_loaded, target_slipangle_rear_label, target_slipangle_front_label
+    global friction_limit_front, friction_limit_rear, data_loaded, target_slipangle_rear_label, target_slipangle_front_label, data_not_found_label
 
     tyreCompound = ac.getCarTyreCompound(0)
     try:
@@ -135,10 +139,14 @@ def acUpdate(deltaT):
         friction_limit_rear = round(friction_limit_rear, 2)
         ac.setText(target_slipangle_front_label, str(friction_limit_front))
         ac.setText(target_slipangle_rear_label, str(friction_limit_rear))
+        ac.setText(data_not_found_label, "")
         data_loaded = True
-    except:
+    except Exception as e:
         friction_limit_front = 8
         friction_limit_rear = 8
+        ac.setText(target_slipangle_front_label, "")
+        ac.setText(target_slipangle_rear_label, "")
+        ac.setText(data_not_found_label, "Data not found")
         data_loaded = False
 
 def draw_box(x, y, width, height):
