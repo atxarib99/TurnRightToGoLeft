@@ -1,0 +1,35 @@
+# This is a basic workflow that is manually triggered
+
+name: Release
+
+# Controls when the action will run
+# or API.
+on:
+  push:
+    branches:
+      - main
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  #name
+  package:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Build zip
+      run: zip -r python/ TurnRightToGoLeft-latest.zip
+
+
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build Zip
+      run: zip -r python/ TurnRightToGoLeft-latest.zip
+    - uses: ncipollo/release-action@v1
+      with:
+        artifacts: "TurnRightToGoLeft-latest.zip"
+        makeLatest: true
+        
