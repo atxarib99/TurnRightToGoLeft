@@ -24,4 +24,5 @@ jobs:
       with:
         artifacts: "TurnRightToGoLeft-latest.zip"
         makeLatest: true
+        tag: latest
         
