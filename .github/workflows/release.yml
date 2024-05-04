@@ -3,7 +3,6 @@
 name: Release
 
 # Controls when the action will run
-# or API.
 on:
   push:
     branches:
