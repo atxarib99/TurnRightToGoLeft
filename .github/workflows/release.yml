@@ -22,11 +22,14 @@ jobs:
       run: zip -r TurnRightToGoLeft-latest.zip python/
 
     - name: echo commit
-      run: echo ${{ github.event.head_commit.message }}
+      run: echo "${{ github.event.head_commit.message }}"
+
+    - name: echo commit id
+      run: echo "${{ github.event.head_commit.id }}"
     
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "TurnRightToGoLeft-latest.zip"
         makeLatest: true
-        tag: ${{ github.event.head_commit.message }}
+        tag: "${{ github.event.head_commit.message }}"
         
