@@ -12,3 +12,5 @@ mv $name/template.py $name/$name.py
 #rename internal app name to given name
 sed -i "s/template/${name}/g" $name/$name.py
 
+#dont copy over template.sh
+rm -f $name/template.sh
