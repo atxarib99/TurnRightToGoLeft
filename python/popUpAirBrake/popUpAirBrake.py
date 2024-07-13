@@ -93,5 +93,5 @@ def setLights(val):
     if active:
         lights = val
         directkeys.PressKey(lights_key)
-        time.sleep(0.001)
+        time.sleep(0.01)
         directkeys.ReleaseKey(lights_key)
