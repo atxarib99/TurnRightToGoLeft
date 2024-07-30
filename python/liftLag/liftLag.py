@@ -14,7 +14,9 @@ car = ""
 #car CL mappings
 mapping_found = False
 heightToCLMult_front = {}
+heightToCLMult_front_peak = 0
 heightToClMult_diff = {}
+heightToClMult_diff_peak = 0
 
 #figure out how to do this better
 avgAOA = 3.3
@@ -22,13 +24,14 @@ avgAOA = 3.3
 #values
 frontRideHeight = 0.0
 rearRideHeight = 0.0
-front_stall = False
-diff_stall = False
+front_stall = 0
+diff_stall = 0
 
 #app size 
+margin = 5
 size_mult = 1.0
-height = 400 * size_mult
-width = 100 * size_mult
+height = 300 * size_mult + margin
+width = 100 * size_mult + margin
 
 #labels
 front_label = None
@@ -68,7 +71,7 @@ def acMain(ac_version):
 
     #set positions, update to app size
     ac.setPosition(front_label, 50 * size_mult, 75 * size_mult)
-    ac.setPosition(diff_label, 50 * size_mult, 325 * size_mult)
+    ac.setPosition(diff_label, 50 * size_mult, 225 * size_mult)
     ac.setFontAlignment(front_label, "center")
     ac.setFontAlignment(diff_label, "center")
     #maybe set size
@@ -102,14 +105,24 @@ def acUpdate(deltaT):
     diff_y3 = linearInterpolate(rearRideHeight, heightToClMult_diff)
 
     if front_y3 < 0.8:
-        front_stall = True
+        #if over height
+        if frontRideHeight > heightToCLMult_front_peak:
+            front_stall = 1
+        #else under height
+        else:
+            front_stall = -1
     else:
-        front_stall = False
+        front_stall = 0
 
     if diff_y3 < 0.8:
-        diff_stall = True
+        #if over height
+        if rearRideHeight > heightToClMult_diff_peak:
+            diff_stall = 1
+        #else under height
+        else:
+            diff_stall = -1
     else:
-        diff_stall = False
+        diff_stall = 0
 
 
     
@@ -119,49 +132,62 @@ def onFormRender(deltaT):
     """
     #draw boxes
     #front box
-    margin = 5
     draw_box(0+margin, 0+margin, 100-margin, 150-margin)
-    #check if front stall
-    #if stall fill box
-    if front_stall:
-        ac.glQuad(0,0,100,150)
-
-    #body box
-    draw_box(0+margin, 150+margin, 100-margin, 100-margin)
-
     #diff box
-    draw_box(0+margin, 250+margin, 100-margin, 150-margin)
+    draw_box(0+margin, 150+margin, 100-margin, 150-margin)
+    
+    #check if front stall
+    #if over height set color red
+    if front_stall > 0:
+        ac.glColor3f(1,0,0)
+    #if under height set color blue
+    if front_stall < 0:
+        ac.glColor3f(0,0,1)
+    #if stall fill box
+    if front_stall != 0:
+        ac.glQuad(0+margin,0+margin,100-margin,150-margin)
+
     #check if rear stall 
+    #if over height set color red
+    if diff_stall > 0:
+        ac.glColor3f(1,0,0)
+    #if under height set color blue
+    if diff_stall < 0:
+        ac.glColor3f(0,0,1)
     #if stall fill box
     if diff_stall:
-        ac.glQuad(0,250,100,150)
-
-
+        ac.glQuad(0+margin,150+margin,100-margin,150-margin)
 
 
 def loadCarInfo():
-    global heightToCLMult_front, heightToClMult_diff, mapping_found
+    global heightToCLMult_front, heightToClMult_diff, mapping_found, heightToClMult_diff_peak, heightToCLMult_front_peak
 
-    #point these to local?
+    max_val = 0
 
-    count = 0
     #get front height mult file
     heightToCLMultFront_file = open(installPath + carPath + car + "\\data\\height_front_CL.lut")
     for line in heightToCLMultFront_file.readlines():
-        count += 1
         if line.strip() == "":
             continue
         split = line.split('|')
+        #if curr multiplier is higher than max_val, reset max val and set peak height
+        if float(split[1]) > max_val:
+            max_val = float(split[1])
+            heightToCLMult_front_peak = float(split[0])
         heightToCLMult_front[float(split[0])] = float(split[1])
     heightToCLMultFront_file.close()
 
-
+    max_val = 0
     #get diffuser height mult file
     heightToCLMultDiff_file = open(installPath + carPath + car + "\\data\\height_diffuser_CL.lut")
     for line in heightToCLMultDiff_file.readlines():
         if line.strip() == "":
             continue
         split = line.split('|')
+        #if curr multiplier is higher than max_val, reset max val and set peak height
+        if float(split[1]) > max_val:
+            max_val = float(split[1])
+            heightToCLMult_diff_peak = float(split[0])
         heightToClMult_diff[float(split[0])] = float(split[1])
     heightToCLMultDiff_file.close()
 
