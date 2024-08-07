@@ -16,7 +16,7 @@ mapping_found = False
 heightToCLMult_front = {}
 heightToCLMult_front_peak = 0
 heightToClMult_diff = {}
-heightToClMult_diff_peak = 0
+heightToCLMult_diff_peak = 0
 
 #figure out how to do this better
 avgAOA = 3.3
@@ -116,7 +116,7 @@ def acUpdate(deltaT):
 
     if diff_y3 < 0.8:
         #if over height
-        if rearRideHeight > heightToClMult_diff_peak:
+        if rearRideHeight > heightToCLMult_diff_peak:
             diff_stall = 1
         #else under height
         else:
@@ -155,12 +155,12 @@ def onFormRender(deltaT):
     if diff_stall < 0:
         ac.glColor3f(0,0,1)
     #if stall fill box
-    if diff_stall:
+    if diff_stall != 0:
         ac.glQuad(0+margin,150+margin,100-margin,150-margin)
 
 
 def loadCarInfo():
-    global heightToCLMult_front, heightToClMult_diff, mapping_found, heightToClMult_diff_peak, heightToCLMult_front_peak
+    global heightToCLMult_front, heightToClMult_diff, mapping_found, heightToCLMult_diff_peak, heightToCLMult_front_peak
 
     max_val = 0
 
