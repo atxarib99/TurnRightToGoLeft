@@ -15,6 +15,9 @@ from third_party.sim_info import SimInfo
 
 appName = "slipometer"
 
+#slip ratio % to use when tc/abs are off
+off_slip_ratio = 0.1
+
 #text labels
 label_slip_ratio_FL = None
 label_slip_ratio_FR = None
@@ -112,6 +115,13 @@ def acUpdate(deltaT):
     abs_setting = float(siminfo.physics.abs)
 
 
+    # set to 0.1 when tc/abs are set to off
+    if tc_setting == 0:
+        tc_setting = off_slip_ratio
+    if abs_setting == 0:
+        abs_setting = off_slip_ratio
+
+
     siminfo.close()
 
 
@@ -136,20 +146,11 @@ def render_tyre_box(x, y, slip, margin=2):
             ac.glColor3f(1,0,0)
             ac.glQuad(x+margin, y+(.5*window_height)-(slip_perc*(.5*window_height))+margin, ((.5*window_width)-margin), (slip_perc*(.5*window_height))-margin)
         elif slip < 0:
-            slip_perc = (-1*slip)/tc_setting
+            slip_perc = (-1*slip)/abs_setting
             if slip_perc > 1:
                 slip_perc = 1
             ac.glColor3f(0,0,1)
             ac.glQuad(x+margin, y+margin, (.5*window_width)-margin, slip_perc*(.5*window_height)-margin)
-
-
-    #if not breakin no limits
-    #else:
-
-    #else if negative ELIF IMPORTANT!!
-    #height = perc to limit slip/abs_settign
-    #glquad(x, top, width, perc of box height)
-    #glquad(x, y, width, perc*(.5*height)
 
 
     
