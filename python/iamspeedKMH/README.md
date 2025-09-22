@@ -3,7 +3,7 @@
 3 Speed Gauges in KM/H. These let you see your max speed at the end of the straight, current speed, and minimum speed through a corner to help you bring down those laptimes!
 
 ## example
-![iamspeedKMH](https://dummyimage.com/600x400/eee/aaa)
+![iamspeedKMH](https://media.githubusercontent.com/media/atxarib99/TurnRightToGoLeft/refs/heads/develop/static/assets/iamspeedKMH/iamspeedKMH.gif)
 
 ## Inspiration
 https://www.reddit.com/r/formula1/comments/g9tnm3/michael_schumacher_wanted_three_digital/?context=3
