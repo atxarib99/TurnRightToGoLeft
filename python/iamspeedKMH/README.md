@@ -4,6 +4,9 @@
 
 ## example
 ![iamspeedKMH](https://github.com/atxarib99/TurnRightToGoLeft/blob/develop/static/assets/iamspeedKMH/iamspeedKMH.gif)
+<p align="center">
+  <img src="static/assets/iamspeedKMH/iamspeedKMH.gif" width="1000" />
+</p>
 
 ## Inspiration
 https://www.reddit.com/r/formula1/comments/g9tnm3/michael_schumacher_wanted_three_digital/?context=3
