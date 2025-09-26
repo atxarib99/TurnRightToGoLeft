@@ -4,7 +4,7 @@
 
 ## example
 <p align="center">
-  <img src="static/assets/iamspeedKMH/iamspeedKMH.gif" width="1000" />
+  <img src="/static/assets/iamspeedKMH/iamspeedKMH.gif" width="1000" />
 </p>
 
 ## Inspiration
