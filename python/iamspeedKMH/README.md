@@ -3,7 +3,6 @@
 3 Speed Gauges in KM/H. These let you see your max speed at the end of the straight, current speed, and minimum speed through a corner to help you bring down those laptimes!
 
 ## example
-![iamspeedKMH](https://github.com/atxarib99/TurnRightToGoLeft/blob/develop/static/assets/iamspeedKMH/iamspeedKMH.gif)
 <p align="center">
   <img src="static/assets/iamspeedKMH/iamspeedKMH.gif" width="1000" />
 </p>
