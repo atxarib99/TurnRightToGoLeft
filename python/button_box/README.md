@@ -12,3 +12,7 @@ VSC|VSC In Effect!
 LOL|(clown)
 ```
 
+## Example
+<p align="center">
+  <img src="/static/assets/button_box/button_box.gif" width="1000" />
+</p>
