@@ -8,5 +8,10 @@ When the blue decends, the tires have a negative slip ratio, which means they ar
 
 When the bar fills a box, the electronics should be activated and the box will turn white and flash alongside the electronics triggering.
 
+## Example
+<p align="center">
+  <img src="/static/assets/slipometer/slipometer.gif" width="1000" />
+</p>
+
 ## Adjustability
 You can adjust the size of the app by modifying the `size_mult` variable near the top of the file. This is a simple multipicative modifier to the app size.
