@@ -12,16 +12,19 @@ last_fuel = 0.0
 lap_fuel_usage = [0.0, 0.0, 0.0]  # Holds fuel used in last 3 laps
 last_lap_count = 0
 estimated_laps = 0
+laps_remaining = 0
 
 # Window size
-window_width = 200
-window_height = 180
+window_width = 220
+window_height = 210
 
 label_current_fuel = None
 label_fuel_lap1 = None
 label_fuel_lap2 = None
 label_fuel_lap3 = None
 label_estimated_laps = None
+label_laps_remaining = None
+
 
 def log_to_file(msg):
     ac.log(appName + ": " + str(msg))
@@ -33,8 +36,9 @@ def log(msg):
     ac.log(appName + ": " + str(msg))
     ac.console(appName + ": " + str(msg))
 
+
 def acMain(ac_version):
-    global label_current_fuel, label_fuel_lap1, label_fuel_lap2, label_fuel_lap3, label_estimated_laps
+    global label_current_fuel, label_fuel_lap1, label_fuel_lap2, label_fuel_lap3, label_estimated_laps, label_laps_remaining
 
     # Create app window
     appWindow = ac.newApp(appName)
@@ -47,6 +51,7 @@ def acMain(ac_version):
     label_fuel_lap2 = ac.addLabel(appWindow, "Fuel Lap 2: ")
     label_fuel_lap3 = ac.addLabel(appWindow, "Fuel Lap 3: ")
     label_estimated_laps = ac.addLabel(appWindow, "Estimated Laps: ")
+    label_laps_remaining = ac.addLabel(appWindow, "Laps Remaining: ")
 
     # Position the labels
     ac.setPosition(label_current_fuel, 10, 20)
@@ -54,16 +59,23 @@ def acMain(ac_version):
     ac.setPosition(label_fuel_lap2, 10, 80)
     ac.setPosition(label_fuel_lap3, 10, 110)
     ac.setPosition(label_estimated_laps, 10, 140)
+    ac.setPosition(label_laps_remaining, 10, 170)
     
     # Set up render callback
     ac.addRenderCallback(appWindow, onFormRender)
 
     return appName
 
+def check_session_change():
+    # TODO: implement
+    pass
+
 def acUpdate(deltaT):
-    global current_fuel, last_fuel, lap_fuel_usage, last_lap_count, estimated_laps
+    global current_fuel, last_fuel, lap_fuel_usage, last_lap_count, estimated_laps, laps_remaining
     
     siminfo = SimInfo()
+
+    # check if session has changed
     
     # Get the current lap count
     current_lap_count = ac.getCarState(0, acsys.CS.LapCount)
@@ -85,6 +97,7 @@ def acUpdate(deltaT):
 
 
     # Check if the lap count has updated (new lap)
+    # TODO: this increment checker instead of inequality is perhaps the source of session change errs.
     if current_lap_count > last_lap_count:
         # Calculate fuel used on the last lap
         fuel_used_last_lap = last_fuel - current_fuel
@@ -97,6 +110,21 @@ def acUpdate(deltaT):
 
         # Update last fuel level for the next lap
         last_fuel = current_fuel
+
+        # Estimate laps remaining if time based
+        #is_timed_race = int(siminfo.static.isTimedRace)
+        #has_extra_lap = int(siminfo.static.hasExtraLap)
+        # Get remaining session time
+        try:
+            session_time_remaining_ms = float(siminfo.graphics.sessionTimeLeft)
+            # Utilize best time for estimate
+            best_lap_time = str(siminfo.graphics.bestTime)
+            best_lap_time_ms = lap_time_to_ms(best_lap_time)
+            if best_lap_time_ms != 0:
+                laps_remaining = math.ceil(session_time_remaining_ms / best_lap_time_ms)
+        except:
+            laps_remaining = 0
+
 
 
     #do a simple ignore erraneous records to best estimate fuel_usage
@@ -125,7 +153,7 @@ def acUpdate(deltaT):
     siminfo.close()
 
 def onFormRender(deltaT):
-    global current_fuel, lap_fuel_usage, label_current_fuel, label_fuel_lap1, label_fuel_lap2, label_fuel_lap3
+    global current_fuel, lap_fuel_usage, label_current_fuel, label_fuel_lap1, label_fuel_lap2, label_fuel_lap3, label_laps_remaining
 
     # Update the labels with the current fuel level and fuel usage for the last 3 laps
     #ac.setText(label_current_fuel, "Current Fuellll: " + str(current_fuel))
@@ -134,4 +162,17 @@ def onFormRender(deltaT):
     ac.setText(label_fuel_lap2, "Fuel Lap 2: {:.2f} L".format(lap_fuel_usage[-2]))
     ac.setText(label_fuel_lap3, "Fuel Lap 3: {:.2f} L".format(lap_fuel_usage[-3]))
     ac.setText(label_estimated_laps, "Est Laps: {:.2f} laps".format(estimated_laps))
+    ac.setText(label_laps_remaining, "Laps Rem: {:.2f} laps".format(laps_remaining))
+
+def lap_time_to_ms(time_str: str) -> float:
+    # Handle missing or invalid format
+    if not time_str or '-' in time_str:
+        return 0.0
+
+    try:
+        minutes, seconds, millis = time_str.split(':')
+        total_ms = (int(minutes) * 60 * 1000) + (int(seconds) * 1000) + int(millis)
+        return float(total_ms)
+    except ValueError:
+        return 0.0
 
