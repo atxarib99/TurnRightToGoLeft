@@ -160,8 +160,7 @@ def acUpdate(deltaT):
     should_recalculate_fuel_to_take = False
 
     # Check if the lap count has updated (new lap)
-    # TODO: this increment checker instead of inequality is perhaps the source of session change errs.
-    if current_lap_count > last_lap_count:
+    if current_lap_count != last_lap_count:
         # Calculate fuel used on the last lap
         fuel_used_last_lap = last_fuel - current_fuel
 
