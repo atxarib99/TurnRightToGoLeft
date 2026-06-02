@@ -134,6 +134,7 @@ def acUpdate(deltaT):
     if check_session_change(siminfo):
         reset_all()
 
+    lap_invalid = False
     # session info
     session = siminfo.graphics.session
     # Get the current lap count
@@ -146,7 +147,8 @@ def acUpdate(deltaT):
     # if we are in our pit box, reset everything
     # need to reset fuel usage, for back to pits usage
     # ignore during race sessions
-    if ac.isCarInPit(0) and session != 2:
+    if ac.isCarInPit(0):
+        lap_invalid = True
         last_fuel = 0
         last_lap_count = current_lap_count
 
@@ -164,7 +166,8 @@ def acUpdate(deltaT):
         fuel_used_last_lap = last_fuel - current_fuel
 
         # Update the lap fuel usage
-        lap_fuel_usage.append(fuel_used_last_lap)
+        if not lap_invalid:
+            lap_fuel_usage.append(fuel_used_last_lap)
 
         # Update last lap count
         last_lap_count = current_lap_count
