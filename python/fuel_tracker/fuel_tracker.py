@@ -9,7 +9,7 @@ appName = "fuel_tracker"
 # Global variables
 current_fuel = 0.0
 last_fuel = 0.0
-lap_fuel_usage = [0.0, 0.0, 0.0]  # Holds fuel used in last 3 laps
+lap_fuel_usage = []  # Holds fuel used in last 3 laps
 last_lap_count = 0
 estimated_laps = 0
 session_laps_remaining = 0
@@ -110,7 +110,7 @@ def reset_all():
 
     current_fuel = 0.0
     last_fuel = 0.0
-    lap_fuel_usage = [0.0, 0.0, 0.0]  # Holds fuel used in last 3 laps
+    lap_fuel_usage = []  # Holds fuel used in last 3 laps
     last_lap_count = 0
     estimated_laps = 0
     session_laps_remaining = 0
@@ -237,9 +237,12 @@ def onFormRender(deltaT):
     # Update the labels with the current fuel level and fuel usage for the last 3 laps
     # ac.setText(label_current_fuel, "Current Fuellll: " + str(current_fuel))
     ac.setText(label_current_fuel, "Current Fuel: {:.2f} L".format(current_fuel))
-    ac.setText(label_fuel_lap1, "Fuel Lap 1: {:.2f} L".format(lap_fuel_usage[-1]))
-    ac.setText(label_fuel_lap2, "Fuel Lap 2: {:.2f} L".format(lap_fuel_usage[-2]))
-    ac.setText(label_fuel_lap3, "Fuel Lap 3: {:.2f} L".format(lap_fuel_usage[-3]))
+    if len(lap_fuel_usage) > 0:
+        ac.setText(label_fuel_lap1, "Fuel Lap 1: {:.2f} L".format(lap_fuel_usage[-1]))
+    if len(lap_fuel_usage) > 1:
+        ac.setText(label_fuel_lap2, "Fuel Lap 2: {:.2f} L".format(lap_fuel_usage[-2]))
+    if len(lap_fuel_usage) > 2:
+        ac.setText(label_fuel_lap3, "Fuel Lap 3: {:.2f} L".format(lap_fuel_usage[-3]))
     ac.setText(
         label_estimated_laps, "Fuel Laps Rem: {:.2f} laps".format(estimated_laps)
     )
