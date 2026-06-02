@@ -134,6 +134,8 @@ def acUpdate(deltaT):
     if check_session_change(siminfo):
         reset_all()
 
+    # session info
+    session = siminfo.graphics.session
     # Get the current lap count
     current_lap_count = ac.getCarState(0, acsys.CS.LapCount)
     # Get the current fuel level
@@ -143,7 +145,8 @@ def acUpdate(deltaT):
 
     # if we are in our pit box, reset everything
     # need to reset fuel usage, for back to pits usage
-    if ac.isCarInPit(0):
+    # ignore during race sessions
+    if ac.isCarInPit(0) and session != 2:
         last_fuel = 0
         last_lap_count = current_lap_count
 
