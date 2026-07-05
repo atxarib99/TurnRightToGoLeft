@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>acmock preview</title>
+<style>
+  :root { --bg:#0e0f12; --panel:#15171a; --ink:#d6d8dc; --dim:#7c828c; --accent:#5ac8fa; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+         font-family: -apple-system, Segoe UI, Roboto, sans-serif; }
+  header { display:flex; align-items:center; gap:14px; padding:10px 16px;
+           border-bottom:1px solid #23262b; font-size:14px; }
+  header .name { font-weight:600; }
+  header .meta { color:var(--dim); }
+  .dot { width:9px; height:9px; border-radius:50%; background:#c0392b; display:inline-block; }
+  .dot.on { background:#27ae60; }
+  main { display:flex; gap:20px; padding:20px; align-items:flex-start; flex-wrap:wrap; }
+  .stage-wrap { display:flex; flex-direction:column; gap:8px; }
+  .stage-label { color:var(--dim); font-size:12px; }
+  #stage { position:relative; background:var(--panel);
+           box-shadow:0 0 0 1px #23262b, 0 8px 30px rgba(0,0,0,.5);
+           background-image:
+             linear-gradient(#ffffff08 1px, transparent 1px),
+             linear-gradient(90deg, #ffffff08 1px, transparent 1px);
+           background-size:20px 20px; }
+  #canvas { display:block; position:absolute; left:0; top:0; }
+  #widgets { position:absolute; left:0; top:0; }
+  #widgets .w { position:absolute; transform:translate(-2px,-2px); }
+  #widgets input[type=number] { width:60px; }
+  #widgets button { cursor:pointer; }
+  .side { flex:1; min-width:320px; max-width:560px; }
+  .side h2 { font-size:12px; text-transform:uppercase; letter-spacing:.08em;
+             color:var(--dim); margin:0 0 6px; }
+  #console { background:#000; border:1px solid #23262b; border-radius:6px;
+             padding:10px; height:340px; overflow:auto; white-space:pre-wrap;
+             font-family: ui-monospace, Menlo, Consolas, monospace; font-size:12px;
+             line-height:1.45; }
+  #console .err { color:#ff6b6b; }
+  #console .chat { color:var(--accent); }
+  #console .unimpl { color:#c9a227; }
+  footer { color:var(--dim); font-size:12px; padding:0 20px 20px; }
+  code { color:var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <span class="name" id="appName">app</span>
+  <span class="meta" id="dims"></span>
+  <span class="meta"><span class="dot" id="dot"></span> <span id="conn">connecting…</span></span>
+  <span class="meta" id="fps"></span>
+</header>
+<main>
+  <div class="stage-wrap">
+    <div class="stage-label">app window (1:1 px) — drawn rects + labels, live controls overlaid</div>
+    <div id="stage">
+      <canvas id="canvas" width="200" height="200"></canvas>
+      <div id="widgets"></div>
+    </div>
+  </div>
+  <div class="side">
+    <h2>Console — ac.log / ac.console / tracebacks</h2>
+    <div id="console"></div>
+  </div>
+</main>
+<footer>
+  Layout preview only — fonts/metrics are approximate, not pixel-identical to the game.
+  Toggle checkboxes, edit spinners, and click buttons to fire app callbacks.
+</footer>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const stage = document.getElementById('stage');
+const widgetsEl = document.getElementById('widgets');
+const consoleEl = document.getElementById('console');
+const dot = document.getElementById('dot');
+const conn = document.getElementById('conn');
+
+const widgetEls = {};            // id -> DOM element
+let frames = 0, lastFpsT = performance.now();
+
+function setStageSize(w, h) {
+  if (canvas.width !== w) canvas.width = w;
+  if (canvas.height !== h) canvas.height = h;
+  stage.style.width = w + 'px';
+  stage.style.height = h + 'px';
+  widgetsEl.style.width = w + 'px';
+  widgetsEl.style.height = h + 'px';
+}
+
+function drawScene(s) {
+  const win = s.window || {w:200, h:200, name:'app'};
+  setStageSize(win.w, win.h);
+  document.getElementById('appName').textContent = win.name || 'app';
+  document.getElementById('dims').textContent = Math.round(win.w) + ' × ' + Math.round(win.h);
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 1) immediate-mode rects (in call order), drawn first / behind text
+  for (const r of s.rects) {
+    ctx.fillStyle = r.color;
+    ctx.fillRect(r.x, r.y, r.w, r.h);
+  }
+  // 2) labels on top. AC aligns text within the label's box [x, x+w] (w from
+  //    setSize), not around the position point — so center lands at x+w/2 and
+  //    right at x+w. Labels with no setSize have w=0, so this collapses to the
+  //    position point (which is why left/right apps already looked correct).
+  ctx.textBaseline = 'top';
+  for (const l of s.labels) {
+    ctx.fillStyle = l.color;
+    ctx.font = (l.size || 12) + 'px sans-serif';
+    const w = l.w || 0;
+    let ax = l.x;
+    if (l.align === 'center') { ctx.textAlign = 'center'; ax = l.x + w / 2; }
+    else if (l.align === 'right') { ctx.textAlign = 'right'; ax = l.x + w; }
+    else { ctx.textAlign = 'left'; ax = l.x; }
+    ctx.fillText(l.text, ax, l.y);
+  }
+
+  syncWidgets(s.widgets || []);
+  renderConsole(s.console || []);
+
+  frames++;
+  const now = performance.now();
+  if (now - lastFpsT > 1000) {
+    document.getElementById('fps').textContent = frames + ' fps';
+    frames = 0; lastFpsT = now;
+  }
+}
+
+function post(ev) {
+  fetch('/event', {method:'POST', headers:{'Content-Type':'application/json'},
+                   body: JSON.stringify(ev)});
+}
+
+function makeWidget(w) {
+  const wrap = document.createElement('div');
+  wrap.className = 'w';
+  let el;
+  if (w.type === 'checkbox') {
+    el = document.createElement('input');
+    el.type = 'checkbox';
+    el.addEventListener('change', () => post({id:w.id, kind:'check', value: el.checked ? 1 : 0}));
+    const lab = document.createElement('label');
+    lab.style.color = '#d6d8dc'; lab.style.fontSize = '12px';
+    lab.appendChild(el); lab.appendChild(document.createTextNode(' ' + (w.text||'')));
+    wrap.appendChild(lab);
+    wrap._input = el;
+  } else if (w.type === 'spinner') {
+    el = document.createElement('input');
+    el.type = 'number';
+    const fire = () => post({id:w.id, kind:'spin', value: parseFloat(el.value)});
+    el.addEventListener('change', fire);
+    el.addEventListener('input', fire);
+    wrap.appendChild(el);
+    wrap._input = el;
+  } else if (w.type === 'button') {
+    el = document.createElement('button');
+    el.textContent = w.text || 'button';
+    el.addEventListener('click', () => post({id:w.id, kind:'click'}));
+    wrap.appendChild(el);
+    wrap._input = el;
+  } else {
+    wrap.textContent = (w.type || '?') + ': ' + (w.text || '');
+  }
+  widgetsEl.appendChild(wrap);
+  return wrap;
+}
+
+function syncWidgets(widgets) {
+  const seen = {};
+  for (const w of widgets) {
+    seen[w.id] = true;
+    let wrap = widgetEls[w.id];
+    if (!wrap) { wrap = makeWidget(w); widgetEls[w.id] = wrap; }
+    wrap.style.left = w.x + 'px';
+    wrap.style.top = w.y + 'px';
+    const inp = wrap._input;
+    if (inp && document.activeElement !== inp) {   // don't fight the user mid-edit
+      if (w.type === 'checkbox') inp.checked = !!w.value;
+      else if (w.type === 'spinner') {
+        if (!isNaN(w.vmin)) inp.min = w.vmin;
+        if (!isNaN(w.vmax)) inp.max = w.vmax;
+        if (w.step) inp.step = w.step;
+        inp.value = w.value;
+      } else if (w.type === 'button') inp.textContent = w.text;
+    }
+  }
+  for (const id in widgetEls) {           // remove widgets no longer present
+    if (!seen[id]) { widgetEls[id].remove(); delete widgetEls[id]; }
+  }
+}
+
+function classify(line) {
+  if (line.startsWith('!!') || line.startsWith('  File') ||
+      line.includes('Traceback') || line.includes('Error')) return 'err';
+  if (line.startsWith('CHAT:')) return 'chat';
+  if (line.startsWith('[unimpl]') || line.startsWith('[strict]')) return 'unimpl';
+  return '';
+}
+
+function renderConsole(lines) {
+  const atBottom = consoleEl.scrollTop + consoleEl.clientHeight >= consoleEl.scrollHeight - 4;
+  consoleEl.innerHTML = lines.map(l => {
+    const cls = classify(l);
+    const safe = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return cls ? '<span class="'+cls+'">'+safe+'</span>' : safe;
+  }).join('\n');
+  if (atBottom) consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+
+const es = new EventSource('/events');
+es.onopen = () => { dot.classList.add('on'); conn.textContent = 'connected'; };
+es.onerror = () => { dot.classList.remove('on'); conn.textContent = 'reconnecting…'; };
+es.onmessage = (e) => {
+  if (!e.data) return;
+  try { drawScene(JSON.parse(e.data)); } catch (err) { /* ignore partial */ }
+};
+</script>
+</body>
+</html>
