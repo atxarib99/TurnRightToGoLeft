@@ -22,6 +22,8 @@ session = None
 window_scale = 1.0
 window_width = 300 * window_scale
 window_height = 200 * window_scale
+# dont add padding to height, otherwise it'll get used in box_size calculation
+top_padding = 25
 
 # calculate box sizes needed with static padding 5
 box_width = (window_width - 20) / 3
@@ -68,7 +70,7 @@ def create_title_label(appWindow, label, grid_x, grid_y, text):
     ac.setSize(label, box_width, 50)
     ac.setFontAlignment(label, "center")
     calc_x = 5 * (grid_x + 1) + (grid_x * box_width)
-    calc_y = 2 + 5 * (grid_y + 1) + (grid_y * box_height)
+    calc_y = 2 + 5 * (grid_y + 1) + (grid_y * box_height) + top_padding
     ac.setPosition(label, calc_x, calc_y)
     return label
 
@@ -78,7 +80,7 @@ def create_value_label(appWindow, label, grid_x, grid_y):
     ac.setSize(label, box_width, 50)
     ac.setFontAlignment(label, "center")
     calc_x = 5 * (grid_x + 1) + (grid_x * box_width)
-    calc_y = (box_height / 2) + 5 * (grid_y + 1) + (grid_y * box_height)
+    calc_y = (box_height / 2) + 5 * (grid_y + 1) + (grid_y * box_height) + top_padding
     ac.setPosition(label, calc_x, calc_y)
     return label
 
@@ -106,7 +108,7 @@ def acMain(ac_version):
 
     # Create app window
     appWindow = ac.newApp(appName)
-    ac.setSize(appWindow, window_width, window_height)
+    ac.setSize(appWindow, window_width, window_height + top_padding)
     log("Fuel Tracker Initialized")
 
     # Create title labels
@@ -124,14 +126,14 @@ def acMain(ac_version):
         appWindow, label_fuel_lap3_title, 0, 2, "Lap 3"
     )
     label_estimated_laps_title = create_title_label(
-        appWindow, label_estimated_laps_title, 2, 0, "Fuel Laps Rem"
+        appWindow, label_estimated_laps_title, 2, 0, "Fuel Rem"
     )
     label_session_laps_remaining_title = create_title_label(
         appWindow,
         label_session_laps_remaining_title,
         2,
         1,
-        "Sesh Laps Rem",
+        "Sesh Rem",
     )
     label_fuel_to_take_title = create_title_label(
         appWindow,
@@ -321,10 +323,10 @@ def draw_box(x, y, width, height):
     width, and height.
     """
     ac.glColor3f(0, 1, 0)
-    ac.glQuad(x, y, width, 1)  # Top edge
-    ac.glQuad(x, y + height - 1, width, 1)  # Bottom edge
-    ac.glQuad(x, y, 1, height)  # Left edge
-    ac.glQuad(x + width - 1, y, 1, height)  # Right edge
+    ac.glQuad(x, y + top_padding, width, 1)  # Top edge
+    ac.glQuad(x, y + top_padding + height - 1, width, 1)  # Bottom edge
+    ac.glQuad(x, y + top_padding, 1, height)  # Left edge
+    ac.glQuad(x + width - 1, y + top_padding, 1, height)  # Right edge
     ac.glColor3f(0, 0, 1)
 
 
