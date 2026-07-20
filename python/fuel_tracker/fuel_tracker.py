@@ -250,6 +250,11 @@ def acUpdate(deltaT):
     if last_fuel == 0.0 and current_fuel != 0.0 and speed > 10:
         last_fuel = current_fuel
 
+    if last_fuel < 0:
+        lap_invalid = True
+        last_fuel = 0
+        last_lap_count = current_lap_count
+
     should_recalculate_fuel_to_take = False
 
     # Check if the lap count has updated (new lap)
